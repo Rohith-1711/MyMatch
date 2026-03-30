@@ -12,7 +12,7 @@ export default function Index() {
     if (isInitialized) {
       if (session) {
         // Here we could also check if profile is set up to go to onboarding
-        router.replace('/(app)');
+        router.replace('/(app)/(tabs)');
       } else {
         router.replace('/(auth)/login');
       }

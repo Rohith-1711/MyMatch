@@ -7,17 +7,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
 import { SwipeCard, ProfileCard } from '@/components/swipe-card';
-import { useRouter } from 'expo-router';
+import { useThemeColor } from '@/constants/Colors';
 
 export default function FeedScreen() {
   const { profile } = useAuthStore();
+  const colors = useThemeColor();
   const [feed, setFeed] = useState<ProfileCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [complimentModalVisible, setComplimentModalVisible] = useState(false);
   const [complimentText, setComplimentText] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<ProfileCard | null>(null);
-  const router = useRouter();
-
   useEffect(() => { fetchFeed(); }, [profile]);
 
   const fetchFeed = async () => {
@@ -59,33 +58,19 @@ export default function FeedScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingState}>
-          <ActivityIndicator size="large" color="#e11d48" />
-          <Text style={styles.loadingText}>Finding people near you...</Text>
+          <ActivityIndicator size="large" color={colors.tint} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Finding people near you...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>MyMatch</Text>
-          <Text style={styles.headerSub}>
-            {profile?.general_location ? `📍 ${profile.general_location}` : '✨ Discover people'}
-          </Text>
-        </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => router.push('/(app)/events')} style={styles.iconBtn}>
-            <Text style={{ fontSize: 18 }}>📅</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/(app)/matches')} style={[styles.iconBtn, styles.iconBtnPrimary]}>
-            <Text style={{ fontSize: 18 }}>💬</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={[styles.logo, { color: colors.text }]}>MyMatch</Text>
       </View>
 
       {/* Card Stack */}
@@ -93,9 +78,9 @@ export default function FeedScreen() {
         {feed.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🌎</Text>
-            <Text style={styles.emptyTitle}>You've seen everyone!</Text>
-            <Text style={styles.emptySubtitle}>Check back later or expand your search location.</Text>
-            <TouchableOpacity onPress={fetchFeed} style={styles.refreshBtn} activeOpacity={0.8}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>You've seen everyone!</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>Check back later or expand your search location.</Text>
+            <TouchableOpacity onPress={fetchFeed} style={[styles.refreshBtn, { backgroundColor: colors.tint }]} activeOpacity={0.8}>
               <Text style={styles.refreshBtnText}>Refresh Feed</Text>
             </TouchableOpacity>
           </View>
@@ -124,10 +109,10 @@ export default function FeedScreen() {
         <View style={styles.actionRow}>
           <TouchableOpacity
             onPress={() => feed.length > 0 && handleSwipeLeft(feed[feed.length - 1])}
-            style={[styles.actionBtn, styles.actionBtnPass]}
+            style={[styles.actionBtn, styles.actionBtnPass, { backgroundColor: colors.card, borderColor: colors.border }]}
             activeOpacity={0.8}
           >
-            <Text style={{ fontSize: 26 }}>✕</Text>
+            <Text style={{ fontSize: 26, color: colors.textMuted }}>✕</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -148,29 +133,28 @@ export default function FeedScreen() {
         </View>
       )}
 
-      {/* Compliment Modal */}
       <Modal animationType="slide" transparent visible={complimentModalVisible} onRequestClose={() => setComplimentModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHandle} />
+          <View style={[styles.modalSheet, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.modalHandle, { backgroundColor: colors.border }]} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Send a Compliment 💌</Text>
-              <TouchableOpacity onPress={() => setComplimentModalVisible(false)} style={styles.modalCloseBtn}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Send a Compliment 💌</Text>
+              <TouchableOpacity onPress={() => setComplimentModalVisible(false)} style={[styles.modalCloseBtn, { backgroundColor: colors.border }]}>
                 <Text style={styles.modalCloseTxt}>✕</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalSub}>Say something genuine to {selectedProfile?.name}!</Text>
+            <Text style={[styles.modalSub, { color: colors.textMuted }]}>Say something genuine to {selectedProfile?.name}!</Text>
             <TextInput
               placeholder="e.g. Your smile is contagious ✨"
-              placeholderTextColor="#52525b"
+              placeholderTextColor={colors.textMuted}
               value={complimentText}
               onChangeText={setComplimentText}
               autoFocus
               multiline
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
               textAlignVertical="top"
             />
-            <TouchableOpacity onPress={sendCompliment} style={styles.modalSendBtn} activeOpacity={0.85}>
+            <TouchableOpacity onPress={sendCompliment} style={[styles.modalSendBtn, { backgroundColor: colors.tint }]} activeOpacity={0.85}>
               <Text style={styles.modalSendTxt}>Send & Like ❤️</Text>
             </TouchableOpacity>
           </View>
@@ -185,18 +169,10 @@ const styles = StyleSheet.create({
   loadingState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   loadingText: { color: '#71717a', fontSize: 15 },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 12,
   },
   logo: { fontSize: 26, fontWeight: '900', color: '#fff', letterSpacing: -1 },
-  headerSub: { fontSize: 12, color: '#71717a', marginTop: 1 },
-  headerActions: { flexDirection: 'row', gap: 10 },
-  iconBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#18181b', borderWidth: 1, borderColor: '#27272a',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  iconBtnPrimary: { backgroundColor: '#1f0a15', borderColor: '#7f1d3f' },
   stack: { flex: 1, position: 'relative' },
   emptyState: {
     flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, gap: 12,

@@ -37,19 +37,17 @@ export default function AppLayout() {
 
   useEffect(() => {
     if (loadingProfile) return;
-
-    const inOnboarding = segments.includes('onboarding');
-    const inPhotos = segments.includes('photos');
     
-    if (!profile && !inOnboarding) {
+    const inOnboarding = (segments as string[]).includes('onboarding');
+    
+    const needsOnboarding = !profile || profile.is_profile_completed !== true;
+    
+    if (needsOnboarding && !inOnboarding) {
       // Setup profile
       router.replace('/(app)/onboarding');
-    } else if (profile && profile.photos.length === 0 && !inPhotos) {
-      // Setup photos
-      router.replace('/(app)/photos');
-    } else if (profile && profile.photos.length > 0 && (inOnboarding || inPhotos)) {
-      // Have profile and photos, exit setup
-      router.replace('/(app)');
+    } else if (!needsOnboarding && profile && inOnboarding) {
+      // Have profile, exit setup
+      router.replace('/(app)/(tabs)');
     }
   }, [profile, loadingProfile, segments]);
 
@@ -63,9 +61,8 @@ export default function AppLayout() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ presentation: 'fullScreenModal' }} />
-      <Stack.Screen name="photos" options={{ presentation: 'fullScreenModal' }} />
     </Stack>
   );
 }

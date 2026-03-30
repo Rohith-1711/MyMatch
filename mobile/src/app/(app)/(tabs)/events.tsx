@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth';
+import { useThemeColor } from '@/constants/Colors';
 
 interface Event {
   id: string;
@@ -28,6 +29,7 @@ const EVENT_IMAGES = [
 
 export default function EventsScreen() {
   const { session } = useAuthStore();
+  const colors = useThemeColor();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -90,7 +92,7 @@ export default function EventsScreen() {
     const imgUrl = item.image_url || EVENT_IMAGES[index % EVENT_IMAGES.length];
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Image source={{ uri: imgUrl }} style={styles.cardImage} resizeMode="cover" />
 
         {/* Capacity Badge */}
@@ -111,12 +113,12 @@ export default function EventsScreen() {
           <View style={styles.cardDate}>
             <Text style={styles.cardDateText}>{date || 'Upcoming'}</Text>
           </View>
-          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{item.title}</Text>
           {item.description ? (
-            <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
+            <Text style={[styles.cardDesc, { color: colors.textMuted }]} numberOfLines={2}>{item.description}</Text>
           ) : null}
           <View style={styles.cardLocation}>
-            <Text style={styles.cardLocationText}>📍 {item.location || 'Location TBD'}</Text>
+            <Text style={[styles.cardLocationText, { color: colors.textMuted }]}>📍 {item.location || 'Location TBD'}</Text>
           </View>
 
           {spotsLeft !== null && spotsLeft <= 10 && spotsLeft > 0 && (
@@ -127,10 +129,10 @@ export default function EventsScreen() {
 
           <TouchableOpacity
             onPress={() => handleRSVP(item)}
-            style={[styles.rsvpBtn, item.is_joined && styles.rsvpBtnJoined]}
+            style={[styles.rsvpBtn, { backgroundColor: colors.tint, shadowColor: colors.tint }, item.is_joined && [styles.rsvpBtnJoined, { backgroundColor: colors.card, borderColor: colors.border }]]}
             activeOpacity={0.8}
           >
-            <Text style={[styles.rsvpBtnText, item.is_joined && styles.rsvpBtnTextJoined]}>
+            <Text style={[styles.rsvpBtnText, item.is_joined && [styles.rsvpBtnTextJoined, { color: colors.textMuted }]]}>
               {item.is_joined ? 'Cancel RSVP' : 'RSVP Now →'}
             </Text>
           </TouchableOpacity>
@@ -140,28 +142,28 @@ export default function EventsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.backIcon, { color: colors.text }]}>←</Text>
         </TouchableOpacity>
         <View>
-          <Text style={styles.title}>Events</Text>
-          <Text style={styles.subtitle}>Meetups & Mixers</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Events</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>Meetups & Mixers</Text>
         </View>
         <View style={{ width: 44 }} />
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color="#e11d48" size="large" />
+          <ActivityIndicator color={colors.tint} size="large" />
         </View>
       ) : events.length === 0 ? (
         <View style={styles.center}>
           <Text style={styles.emptyEmoji}>🎭</Text>
-          <Text style={styles.emptyTitle}>No events yet</Text>
-          <Text style={styles.emptySubtitle}>Check back soon for local meetups and mixers!</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>No events yet</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>Check back soon for local meetups and mixers!</Text>
         </View>
       ) : (
         <FlatList

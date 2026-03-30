@@ -9,6 +9,22 @@ interface Profile {
   general_location?: string;
   is_precise_location_opted_in: boolean;
   photos: string[];
+
+  // Module 2 Additions
+  dob?: string;
+  sex?: string;
+  sexuality?: string;
+  height?: number;
+  drinking_habit?: string;
+  smoking_habit?: string;
+  weed_usage?: string;
+  drug_usage?: string;
+  religion?: string;
+  hometown?: string;
+  occupation?: string;
+  sports?: string[];
+  hobbies?: string[];
+  is_profile_completed?: boolean;
 }
 
 interface AuthState {
