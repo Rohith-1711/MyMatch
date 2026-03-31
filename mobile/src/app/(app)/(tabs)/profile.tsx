@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useThemeColor } from '@/constants/Colors';
 import { ProfilePreview } from '@/components/profile-preview';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function ProfileScreen() {
   const { profile, setProfile } = useAuthStore();
@@ -16,7 +17,14 @@ export default function ProfileScreen() {
 
   // Sync state with store if it changes elsewhere
   React.useEffect(() => {
-    if (profile) setEditedProfile(profile);
+    if (profile) {
+      setEditedProfile(prev => ({
+        ...prev,
+        ...profile,
+        drinking_habit: profile.drinking_habit || 'No', // Default if missing
+        smoking_habit: profile.smoking_habit || 'No',   // Default if missing
+      }));
+    }
   }, [profile]);
 
   const handleLogout = async () => {
@@ -56,22 +64,24 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Theme Toggle in Top Left */}
-      <View style={[styles.header, { borderBottomColor: bwBorder }]}>
-        <View style={styles.headerLeft}>
-          <ThemeToggle />
+      <View style={{ width: '100%', maxWidth: 600, alignSelf: 'center' }}>
+        <View style={[styles.header, { borderBottomColor: bwBorder }]}>
+          <View style={styles.headerLeft}>
+            <ThemeToggle />
+          </View>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>My Profile</Text>
+          <TouchableOpacity 
+            onPress={handleSave} 
+            style={styles.headerRight}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color={colors.tint} />
+            ) : (
+              <Text style={[styles.saveAction, { color: colors.tint }]}>Save</Text>
+            )}
+          </TouchableOpacity>
         </View>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>My Profile</Text>
-        <TouchableOpacity 
-          onPress={handleSave} 
-          style={styles.headerRight}
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <ActivityIndicator size="small" color={colors.tint} />
-          ) : (
-            <Text style={[styles.saveAction, { color: colors.tint }]}>Save</Text>
-          )}
-        </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView 
@@ -80,7 +90,7 @@ export default function ProfileScreen() {
       >
         <ScrollView 
           showsVerticalScrollIndicator={false} 
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { maxWidth: 600, alignSelf: 'center', width: '100%' }]}
         >
           {/* Status-style Avatar */}
           <View style={styles.avatarSection}>
@@ -93,161 +103,244 @@ export default function ProfileScreen() {
                 <Image source={{ uri: profile.photos[0] }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatarPlaceholder, { backgroundColor: colors.card }]}>
-                  <Text style={styles.emoji}>👤</Text>
+                  <Ionicons name="person-outline" size={40} color={bwMuted} />
                 </View>
               )}
               <View style={[styles.previewIcon, { backgroundColor: colors.tint }]}>
                 <Ionicons name="eye" size={16} color="#ffffff" />
               </View>
             </TouchableOpacity>
-            <Text style={[styles.tapToPreview, { color: bwMuted }]}>Tap photo to preview profile</Text>
+            <Text style={[styles.tapToPreview, { color: colors.tint }]}>Tap to preview / See how others see you</Text>
           </View>
 
-          {/* Editable Fields */}
+          {/* Editable Sections */}
           <View style={styles.formSection}>
-            <Text style={[styles.sectionTitle, { color: bwMuted }]}>Core Identity</Text>
             
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Name</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.name}
-                onChangeText={(v) => updateField('name', v)}
-                placeholder="Enter your name"
-                placeholderTextColor={bwMuted}
-              />
-            </View>
+            {/* 1. Core Identity Card */}
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: bwBorder }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="person-circle-outline" size={20} color={colors.tint} />
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Core Identity</Text>
+              </View>
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Bio</Text>
-              <TextInput 
-                style={[styles.input, styles.textArea, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.bio}
-                onChangeText={(v) => updateField('bio', v)}
-                placeholder="Tell us about yourself..."
-                placeholderTextColor={bwMuted}
-                multiline
-                numberOfLines={4}
-              />
-            </View>
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="text-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Display Name</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.name}
+                  onChangeText={(v) => updateField('name', v)}
+                  placeholder="Your Name"
+                  placeholderTextColor={bwMuted}
+                />
+              </View>
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Occupation</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.occupation}
-                onChangeText={(v) => updateField('occupation', v)}
-                placeholder="e.g. Software Engineer"
-                placeholderTextColor={bwMuted}
-              />
-            </View>
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="document-text-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Short Bio</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, styles.textArea, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.bio}
+                  onChangeText={(v) => updateField('bio', v)}
+                  placeholder="What makes you, you?"
+                  placeholderTextColor={bwMuted}
+                  multiline
+                  numberOfLines={4}
+                />
+              </View>
 
-            <Text style={[styles.sectionTitle, { color: bwMuted, marginTop: 20 }]}>Lifestyle & Basics</Text>
-
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Hometown</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.hometown}
-                onChangeText={(v) => updateField('hometown', v)}
-                placeholder="Where are you from?"
-                placeholderTextColor={bwMuted}
-              />
-            </View>
-
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Religion</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.religion}
-                onChangeText={(v) => updateField('religion', v)}
-                placeholder="Optional"
-                placeholderTextColor={bwMuted}
-              />
-            </View>
-
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Height (cm)</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.height?.toString()}
-                onChangeText={(v) => updateField('height', parseInt(v) || 0)}
-                placeholder="Height in cm"
-                placeholderTextColor={bwMuted}
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Habits (Simplified Selection) */}
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Drinking Habit</Text>
-              <View style={styles.chipRow}>
-                {['No', 'Sometimes', 'Yes'].map(opt => (
-                  <TouchableOpacity 
-                    key={opt}
-                    onPress={() => updateField('drinking_habit', opt)}
-                    style={[styles.chip, { borderColor: bwBorder }, editedProfile?.drinking_habit === opt && { backgroundColor: bwText }]}
-                  >
-                    <Text style={[styles.chipText, { color: editedProfile?.drinking_habit === opt ? colors.background : bwText }]}>{opt}</Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="briefcase-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Occupation</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.occupation}
+                  onChangeText={(v) => updateField('occupation', v)}
+                  placeholder="What do you do?"
+                  placeholderTextColor={bwMuted}
+                />
               </View>
             </View>
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Smoking Habit</Text>
-              <View style={styles.chipRow}>
-                {['No', 'Sometimes', 'Yes'].map(opt => (
-                  <TouchableOpacity 
-                    key={opt}
-                    onPress={() => updateField('smoking_habit', opt)}
-                    style={[styles.chip, { borderColor: bwBorder }, editedProfile?.smoking_habit === opt && { backgroundColor: bwText }]}
-                  >
-                    <Text style={[styles.chipText, { color: editedProfile?.smoking_habit === opt ? colors.background : bwText }]}>{opt}</Text>
-                  </TouchableOpacity>
-                ))}
+            {/* 2. Lifestyle & Basics Card */}
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: bwBorder }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="navigate-outline" size={20} color={colors.tint} />
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Basics & Vibes</Text>
+              </View>
+
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="home-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Hometown</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.hometown}
+                  onChangeText={(v) => updateField('hometown', v)}
+                  placeholder="Where's home?"
+                  placeholderTextColor={bwMuted}
+                />
+              </View>
+
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="star-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Religion</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.religion}
+                  onChangeText={(v) => updateField('religion', v)}
+                  placeholder="Faith/Belief"
+                  placeholderTextColor={bwMuted}
+                />
+              </View>
+
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="resize-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Height (cm)</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.height?.toString()}
+                  onChangeText={(v) => updateField('height', parseInt(v) || 0)}
+                  placeholder="e.g. 175"
+                  placeholderTextColor={bwMuted}
+                  keyboardType="numeric"
+                />
               </View>
             </View>
 
-            <Text style={[styles.sectionTitle, { color: bwMuted, marginTop: 20 }]}>Interests & Tags</Text>
+            {/* 3. Habits Selection Card */}
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: bwBorder }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="wine-outline" size={20} color={colors.tint} />
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Lifestyle Habits</Text>
+              </View>
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Sports (comma separated)</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.sports?.join(', ')}
-                onChangeText={(v) => updateField('sports', v.split(',').map(s => s.trim()).filter(Boolean))}
-                placeholder="Basketball, Soccer, etc."
-                placeholderTextColor={bwMuted}
-              />
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="beer-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Drinking</Text>
+                </View>
+                <View style={styles.chipRow}>
+                  {['No', 'Sometimes', 'Yes'].map(opt => {
+                    const currentVal = editedProfile?.drinking_habit || 'No';
+                    const isActive = currentVal === opt;
+                    return (
+                      <TouchableOpacity 
+                        key={opt}
+                        onPress={() => updateField('drinking_habit', opt)}
+                        style={[
+                          styles.chip, 
+                          { borderColor: bwBorder }, 
+                          isActive && { borderColor: colors.tint, backgroundColor: colors.tint + '10' }
+                        ]}
+                      >
+                        <Text style={[
+                          styles.chipText, 
+                          { color: bwMuted },
+                          isActive && { color: colors.tint, fontWeight: '800' }
+                        ]}>{opt}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="medical-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Smoking</Text>
+                </View>
+                <View style={styles.chipRow}>
+                  {['No', 'Sometimes', 'Yes'].map(opt => {
+                    const currentVal = editedProfile?.smoking_habit || 'No';
+                    const isActive = currentVal === opt;
+                    return (
+                      <TouchableOpacity 
+                        key={opt}
+                        onPress={() => updateField('smoking_habit', opt)}
+                        style={[
+                          styles.chip, 
+                          { borderColor: bwBorder }, 
+                          isActive && { borderColor: colors.tint, backgroundColor: colors.tint + '10' }
+                        ]}
+                      >
+                        <Text style={[
+                          styles.chipText, 
+                          { color: bwMuted },
+                          isActive && { color: colors.tint, fontWeight: '800' }
+                        ]}>{opt}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
             </View>
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: bwMuted }]}>Hobbies (comma separated)</Text>
-              <TextInput 
-                style={[styles.input, { color: bwText, borderColor: bwBorder }]}
-                value={editedProfile?.hobbies?.join(', ')}
-                onChangeText={(v) => updateField('hobbies', v.split(',').map(s => s.trim()).filter(Boolean))}
-                placeholder="Reading, Cooking, etc."
-                placeholderTextColor={bwMuted}
-              />
+            {/* 4. Interests & Tags Card */}
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: bwBorder, marginBottom: 20 }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="heart-half-outline" size={20} color={colors.tint} />
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Interests & Fun</Text>
+              </View>
+
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="basketball-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Sports</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.sports?.join(', ')}
+                  onChangeText={(v) => updateField('sports', v.split(',').map(s => s.trim()).filter(Boolean))}
+                  placeholder="Basketball, Tennis"
+                  placeholderTextColor={bwMuted}
+                />
+              </View>
+
+              <View style={styles.inputItem}>
+                <View style={styles.inputLabelRow}>
+                  <Ionicons name="brush-outline" size={16} color={bwMuted} />
+                  <Text style={[styles.inputLabel, { color: bwMuted }]}>Hobbies</Text>
+                </View>
+                <TextInput 
+                  style={[styles.input, { color: bwText, borderColor: bwBorder }]}
+                  value={editedProfile?.hobbies?.join(', ')}
+                  onChangeText={(v) => updateField('hobbies', v.split(',').map(s => s.trim()).filter(Boolean))}
+                  placeholder="Cooking, Painting"
+                  placeholderTextColor={bwMuted}
+                />
+              </View>
             </View>
 
-            {/* Logout at bottom of form */}
+            {/* Logout at very bottom */}
             <TouchableOpacity onPress={handleLogout} style={[styles.logoutBtn, { borderColor: bwBorder }]}>
-              <Text style={styles.logoutText}>Log Out Account</Text>
+              <Text style={styles.logoutText}>Safe Sign Out 🔒</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* Profile Preview Modal */}
-      {profile && (
+      {(editedProfile || profile) && (
         <ProfilePreview 
           visible={isPreviewVisible}
           onClose={() => setIsPreviewVisible(false)}
-          onSave={() => setIsPreviewVisible(false)}
-          profile={profile as any}
+          onSave={() => {
+            setIsPreviewVisible(false);
+            handleSave();
+          }}
+          profile={(editedProfile || profile) as any}
         />
       )}
     </SafeAreaView>
@@ -299,4 +392,99 @@ const styles = StyleSheet.create({
   previewIcon: {
     position: 'absolute',
     bottom: 0,
-    right: 
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  tapToPreview: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 4,
+    letterSpacing: -0.2,
+  },
+  formSection: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    gap: 20,
+  },
+  card: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    gap: 24,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+      android: { elevation: 2 }
+    })
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: -4,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  inputItem: {
+    gap: 12,
+  },
+  inputLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  textArea: {
+    height: 120,
+    textAlignVertical: 'top',
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  chip: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  logoutBtn: {
+    marginTop: 20,
+    paddingVertical: 18,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    marginBottom: 60,
+  },
+  logoutText: {
+    color: '#ef4444',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+}); 

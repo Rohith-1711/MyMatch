@@ -104,34 +104,6 @@ export default function FeedScreen() {
         )}
       </View>
 
-      {/* Action Buttons (only when there are cards) */}
-      {feed.length > 0 && (
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            onPress={() => feed.length > 0 && handleSwipeLeft(feed[feed.length - 1])}
-            style={[styles.actionBtn, styles.actionBtnPass, { backgroundColor: colors.card, borderColor: colors.border }]}
-            activeOpacity={0.8}
-          >
-            <Text style={{ fontSize: 26, color: colors.textMuted }}>✕</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => feed.length > 0 && openComplimentModal(feed[feed.length - 1])}
-            style={[styles.actionBtn, styles.actionBtnStar]}
-            activeOpacity={0.8}
-          >
-            <Text style={{ fontSize: 22 }}>💌</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => feed.length > 0 && handleSwipeRight(feed[feed.length - 1])}
-            style={[styles.actionBtn, styles.actionBtnLike]}
-            activeOpacity={0.8}
-          >
-            <Text style={{ fontSize: 26 }}>♥</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       <Modal animationType="slide" transparent visible={complimentModalVisible} onRequestClose={() => setComplimentModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
@@ -187,29 +159,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4, shadowRadius: 16,
   },
   refreshBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  actionRow: {
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
-    paddingHorizontal: 40, paddingVertical: 16, gap: 20,
-  },
-  actionBtn: {
-    alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
-  },
-  actionBtnPass: {
-    width: 60, height: 60, borderRadius: 30,
-    backgroundColor: '#18181b', borderWidth: 2, borderColor: '#3f3f46',
-    shadowColor: '#000',
-  },
-  actionBtnStar: {
-    width: 52, height: 52, borderRadius: 26,
-    backgroundColor: '#1f0a2a', borderWidth: 2, borderColor: '#7c3aed',
-    shadowColor: '#7c3aed',
-  },
-  actionBtnLike: {
-    width: 68, height: 68, borderRadius: 34,
-    backgroundColor: '#e11d48', borderWidth: 2, borderColor: '#fb7185',
-    shadowColor: '#e11d48',
-  },
+
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: '#18181b', borderTopLeftRadius: 36, borderTopRightRadius: 36,

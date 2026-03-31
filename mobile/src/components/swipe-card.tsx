@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Dimensions, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -9,18 +9,33 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { GradientView } from './gradient-view';
+import { ProfileContent } from './profile-content';
+import { useThemeColor } from '@/constants/Colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.4;
 
 export interface ProfileCard {
   id: string;
   user_id: string;
   name: string;
-  bio: string;
+  bio?: string;
   intent: string;
   photos: string[];
+  dob?: string;
+  sex?: string;
+  sexuality?: string;
+  height?: number;
+  general_location?: string;
+  drinking_habit?: string;
+  smoking_habit?: string;
+  weed_usage?: string;
+  drug_usage?: string;
+  religion?: string;
+  hometown?: string;
+  occupation?: string;
+  sports?: string[];
+  hobbies?: string[];
 }
 
 interface SwipeCardProps {
@@ -31,26 +46,30 @@ interface SwipeCardProps {
   isFirst: boolean;
 }
 
-const INTENT_COLORS: Record<string, string> = {
-  dating: '#e11d48',
-  platonic: '#7c3aed',
-  both: '#d97706',
-};
-
 export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onCompliment, isFirst }: SwipeCardProps) {
+  const colors = useThemeColor();
+  const isLight = colors.background === '#ffffff';
+
+  const bwBackground = isLight ? '#ffffff' : '#000000';
+  const bwText = isLight ? '#000000' : '#ffffff';
+  const bwMuted = isLight ? '#71717a' : '#a1a1aa';
+  const actionBg = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
+
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
   const panGesture = Gesture.Pan()
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-10, 10])
     .onUpdate((event) => {
       translateX.value = event.translationX;
-      translateY.value = event.translationY * 0.3;
+      translateY.value = event.translationY * 0.15;
     })
     .onEnd(() => {
       if (translateX.value > SWIPE_THRESHOLD) {
-        translateX.value = withSpring(SCREEN_WIDTH * 1.5, { damping: 15 }, () => runOnJS(onSwipeRight)(profile));
+        translateX.value = withSpring(SCREEN_WIDTH * 1.5, { damping: 20 }, () => runOnJS(onSwipeRight)(profile));
       } else if (translateX.value < -SWIPE_THRESHOLD) {
-        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { damping: 15 }, () => runOnJS(onSwipeLeft)(profile));
+        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { damping: 20 }, () => runOnJS(onSwipeLeft)(profile));
       } else {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
@@ -58,7 +77,7 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onCompliment, is
     });
 
   const cardStyle = useAnimatedStyle(() => {
-    const rotate = interpolate(translateX.value, [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2], [-12, 0, 12], Extrapolation.CLAMP);
+    const rotate = interpolate(translateX.value, [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2], [-10, 0, 10], Extrapolation.CLAMP);
     return {
       transform: [
         { translateX: translateX.value },
@@ -69,63 +88,59 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onCompliment, is
   });
 
   const likeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [20, SWIPE_THRESHOLD], [0, 1], Extrapolation.CLAMP),
-    transform: [{ scale: interpolate(translateX.value, [20, SWIPE_THRESHOLD], [0.7, 1], Extrapolation.CLAMP) }],
+    opacity: interpolate(translateX.value, [20, SWIPE_THRESHOLD / 2], [0, 1], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(translateX.value, [20, SWIPE_THRESHOLD / 2], [0.5, 1.2], Extrapolation.CLAMP) }],
   }));
 
   const nopeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [-20, -SWIPE_THRESHOLD], [0, 1], Extrapolation.CLAMP),
-    transform: [{ scale: interpolate(translateX.value, [-20, -SWIPE_THRESHOLD], [0.7, 1], Extrapolation.CLAMP) }],
+    opacity: interpolate(translateX.value, [-20, -SWIPE_THRESHOLD / 2], [0, 1], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(translateX.value, [-20, -SWIPE_THRESHOLD / 2], [0.5, 1.2], Extrapolation.CLAMP) }],
   }));
 
-  const photoUrl = profile.photos?.[0] || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800';
-  const intentColor = INTENT_COLORS[profile.intent] || '#e11d48';
-
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents={isFirst ? 'auto' : 'none'}>
+    <View style={styles.container} pointerEvents={isFirst ? 'auto' : 'none'}>
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.card, cardStyle]}>
-          <Image source={{ uri: photoUrl }} style={styles.image} resizeMode="cover" />
+        <Animated.View style={[styles.card, { backgroundColor: bwBackground }, cardStyle]}>
+          <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            bounces={true}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <ProfileContent profile={profile as any} />
+            
+            {/* Explicit Action Buttons at the bottom of the profile */}
+            <View style={[styles.bottomActions, { backgroundColor: bwBackground }]}>
+               <TouchableOpacity 
+                 onPress={() => onSwipeLeft(profile)}
+                 style={[styles.miniActionBtn, { borderColor: '#ef4444', backgroundColor: actionBg }]}
+               >
+                 <Text style={{ fontSize: 24, color: '#ef4444' }}>✕</Text>
+               </TouchableOpacity>
 
-          {/* Gradient overlay */}
-          <GradientView
-            colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.85)', '#000']}
-            style={styles.gradient}
-          />
+               <TouchableOpacity 
+                 onPress={() => onCompliment(profile)}
+                 style={[styles.miniActionBtn, { borderColor: '#7c3aed', width: 140, backgroundColor: actionBg }]}
+               >
+                 <Text style={[styles.miniActionText, { color: '#7c3aed' }]}>💌 Compliment</Text>
+               </TouchableOpacity>
 
-          {/* Like stamp */}
+               <TouchableOpacity 
+                 onPress={() => onSwipeRight(profile)}
+                 style={[styles.miniActionBtn, { borderColor: '#22c55e', backgroundColor: actionBg }]}
+               >
+                 <Text style={{ fontSize: 24, color: '#22c55e' }}>♥</Text>
+               </TouchableOpacity>
+            </View>
+          </ScrollView>
+
+          {/* Like/Nope Overlays */}
           <Animated.View style={[styles.stamp, styles.likeStamp, likeStyle]}>
             <Text style={styles.stampTextLike}>LIKE</Text>
           </Animated.View>
 
-          {/* Nope stamp */}
           <Animated.View style={[styles.stamp, styles.nopeStamp, nopeStyle]}>
             <Text style={styles.stampTextNope}>NOPE</Text>
           </Animated.View>
-
-          {/* User info */}
-          <View style={styles.info}>
-            <View style={styles.nameRow}>
-              <Text style={styles.name}>{profile.name}</Text>
-              <View style={[styles.intentBadge, { backgroundColor: intentColor + '33', borderColor: intentColor }]}>
-                <Text style={[styles.intentText, { color: intentColor }]}>
-                  {profile.intent === 'dating' ? '❤️' : profile.intent === 'platonic' ? '🤝' : '✨'} {profile.intent}
-                </Text>
-              </View>
-            </View>
-
-            {profile.bio ? (
-              <Text style={styles.bio} numberOfLines={2}>{profile.bio}</Text>
-            ) : null}
-
-            <TouchableOpacity
-              onPress={() => onCompliment(profile)}
-              style={styles.complimentBtn}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.complimentText}>💌 Send Compliment</Text>
-            </TouchableOpacity>
-          </View>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -133,37 +148,37 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onCompliment, is
 }
 
 const styles = StyleSheet.create({
+  container: { ...StyleSheet.absoluteFillObject },
   card: {
-    position: 'absolute', top: 8, left: 12, right: 12, bottom: 8,
-    borderRadius: 32, overflow: 'hidden', backgroundColor: '#18181b',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.6, shadowRadius: 40, elevation: 20,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 20,
+    borderRadius: 32, overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5, shadowRadius: 20, elevation: 15,
   },
-  image: { ...StyleSheet.absoluteFillObject },
-  gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '65%' },
+  scrollContent: { paddingBottom: 20 },
+  
   stamp: {
-    position: 'absolute', top: 50,
-    paddingHorizontal: 20, paddingVertical: 8,
-    borderWidth: 4, borderRadius: 12,
+    position: 'absolute', top: 60,
+    paddingHorizontal: 24, paddingVertical: 12,
+    borderWidth: 6, borderRadius: 16,
+    zIndex: 100,
   },
-  likeStamp: { left: 24, transform: [{ rotate: '-15deg' }], borderColor: '#22c55e' },
-  nopeStamp: { right: 24, transform: [{ rotate: '15deg' }], borderColor: '#ef4444' },
-  stampTextLike: { color: '#22c55e', fontSize: 36, fontWeight: '900', letterSpacing: 2 },
-  stampTextNope: { color: '#ef4444', fontSize: 36, fontWeight: '900', letterSpacing: 2 },
-  info: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, gap: 10 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  name: { fontSize: 30, fontWeight: '900', color: '#fff', letterSpacing: -0.5 },
-  intentBadge: {
-    paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 20, borderWidth: 1,
+  likeStamp: { left: 40, transform: [{ rotate: '-15deg' }], borderColor: '#22c55e' },
+  nopeStamp: { right: 40, transform: [{ rotate: '15deg' }], borderColor: '#ef4444' },
+  stampTextLike: { color: '#22c55e', fontSize: 48, fontWeight: '900', letterSpacing: 4 },
+  stampTextNope: { color: '#ef4444', fontSize: 48, fontWeight: '900', letterSpacing: 4 },
+
+  bottomActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+    gap: 20,
   },
-  intentText: { fontSize: 11, fontWeight: '800', textTransform: 'capitalize' },
-  bio: { fontSize: 15, color: 'rgba(255,255,255,0.8)', lineHeight: 22 },
-  complimentBtn: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20, paddingVertical: 12,
-    alignItems: 'center', marginTop: 4,
+  miniActionBtn: {
+    height: 60, width: 60, borderRadius: 30,
+    borderWidth: 2, alignItems: 'center', justifyContent: 'center',
   },
-  complimentText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  miniActionText: { fontSize: 13, fontWeight: '900' },
 });
