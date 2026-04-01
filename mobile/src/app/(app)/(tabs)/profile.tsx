@@ -70,8 +70,8 @@ export default function ProfileScreen() {
             <ThemeToggle />
           </View>
           <Text style={[styles.headerTitle, { color: colors.text }]}>My Profile</Text>
-          <TouchableOpacity 
-            onPress={handleSave} 
+          <TouchableOpacity
+            onPress={handleSave}
             style={styles.headerRight}
             disabled={isSaving}
           >
@@ -84,18 +84,18 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { maxWidth: 600, alignSelf: 'center', width: '100%' }]}
         >
           {/* Status-style Avatar */}
           <View style={styles.avatarSection}>
-            <TouchableOpacity 
-              onPress={() => setIsPreviewVisible(true)} 
+            <TouchableOpacity
+              onPress={() => setIsPreviewVisible(true)}
               style={[styles.avatarWrapper, { borderColor: colors.tint }]}
               activeOpacity={0.8}
             >
@@ -115,7 +115,7 @@ export default function ProfileScreen() {
 
           {/* Editable Sections */}
           <View style={styles.formSection}>
-            
+
             {/* 1. Core Identity Card */}
             <View style={[styles.card, { backgroundColor: colors.card, borderColor: bwBorder }]}>
               <View style={styles.cardHeader}>
@@ -128,7 +128,7 @@ export default function ProfileScreen() {
                   <Ionicons name="text-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Display Name</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.name}
                   onChangeText={(v) => updateField('name', v)}
@@ -142,7 +142,7 @@ export default function ProfileScreen() {
                   <Ionicons name="document-text-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Short Bio</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, styles.textArea, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.bio}
                   onChangeText={(v) => updateField('bio', v)}
@@ -158,7 +158,7 @@ export default function ProfileScreen() {
                   <Ionicons name="briefcase-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Occupation</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.occupation}
                   onChangeText={(v) => updateField('occupation', v)}
@@ -180,7 +180,7 @@ export default function ProfileScreen() {
                   <Ionicons name="home-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Hometown</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.hometown}
                   onChangeText={(v) => updateField('hometown', v)}
@@ -194,7 +194,7 @@ export default function ProfileScreen() {
                   <Ionicons name="star-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Religion</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.religion}
                   onChangeText={(v) => updateField('religion', v)}
@@ -208,7 +208,7 @@ export default function ProfileScreen() {
                   <Ionicons name="resize-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Height (cm)</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.height?.toString()}
                   onChangeText={(v) => updateField('height', parseInt(v) || 0)}
@@ -236,17 +236,17 @@ export default function ProfileScreen() {
                     const currentVal = editedProfile?.drinking_habit || 'No';
                     const isActive = currentVal === opt;
                     return (
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         key={opt}
                         onPress={() => updateField('drinking_habit', opt)}
                         style={[
-                          styles.chip, 
-                          { borderColor: bwBorder }, 
+                          styles.chip,
+                          { borderColor: bwBorder },
                           isActive && { borderColor: colors.tint, backgroundColor: colors.tint + '10' }
                         ]}
                       >
                         <Text style={[
-                          styles.chipText, 
+                          styles.chipText,
                           { color: bwMuted },
                           isActive && { color: colors.tint, fontWeight: '800' }
                         ]}>{opt}</Text>
@@ -266,17 +266,17 @@ export default function ProfileScreen() {
                     const currentVal = editedProfile?.smoking_habit || 'No';
                     const isActive = currentVal === opt;
                     return (
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         key={opt}
                         onPress={() => updateField('smoking_habit', opt)}
                         style={[
-                          styles.chip, 
-                          { borderColor: bwBorder }, 
+                          styles.chip,
+                          { borderColor: bwBorder },
                           isActive && { borderColor: colors.tint, backgroundColor: colors.tint + '10' }
                         ]}
                       >
                         <Text style={[
-                          styles.chipText, 
+                          styles.chipText,
                           { color: bwMuted },
                           isActive && { color: colors.tint, fontWeight: '800' }
                         ]}>{opt}</Text>
@@ -299,7 +299,7 @@ export default function ProfileScreen() {
                   <Ionicons name="basketball-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Sports</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.sports?.join(', ')}
                   onChangeText={(v) => updateField('sports', v.split(',').map(s => s.trim()).filter(Boolean))}
@@ -313,7 +313,7 @@ export default function ProfileScreen() {
                   <Ionicons name="brush-outline" size={16} color={bwMuted} />
                   <Text style={[styles.inputLabel, { color: bwMuted }]}>Hobbies</Text>
                 </View>
-                <TextInput 
+                <TextInput
                   style={[styles.input, { color: bwText, borderColor: bwBorder }]}
                   value={editedProfile?.hobbies?.join(', ')}
                   onChangeText={(v) => updateField('hobbies', v.split(',').map(s => s.trim()).filter(Boolean))}
@@ -333,7 +333,7 @@ export default function ProfileScreen() {
 
       {/* Profile Preview Modal */}
       {(editedProfile || profile) && (
-        <ProfilePreview 
+        <ProfilePreview
           visible={isPreviewVisible}
           onClose={() => setIsPreviewVisible(false)}
           onSave={() => {
